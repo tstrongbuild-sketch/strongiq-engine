@@ -23,11 +23,11 @@ const state = {
   address: '',
   tagline: 'Intelligence that compounds.',
   photoUrl: '',
-  logoUrl: '',
-  logoWidth: 180,
+  logoUrl: '/samples/strongiq-logo.png',
+  logoWidth: 190,
   template: 'modern',
   animation: 'gradientBar',
-  colors: { primary: '#2563eb', accent: '#22d3ee', text: '#111827', muted: '#6b7280', bg: '#ffffff' },
+  colors: { primary: '#121721', accent: '#a9784b', text: '#121721', muted: '#6e7076', bg: '#f5f2ec' },
   socials: { linkedin: 'linkedin.com/in/alexmorgan', twitter: '', github: 'github.com/alexmorgan' },
 };
 
@@ -244,6 +244,12 @@ function setupPhoto() {
   const w = $('#f-logowidth');
   w.value = state.logoWidth;
   w.addEventListener('input', () => { state.logoWidth = parseInt(w.value, 10); renderPreview(); });
+
+  // Reflect the pre-loaded StrongIQ logo in its preview box on load.
+  if (state.logoUrl) {
+    $('#logo-preview').innerHTML = `<img src="${state.logoUrl}" alt="StrongIQ" />`;
+    $('#logo-clear').hidden = false;
+  }
 }
 
 /* -------------------------------- generate ------------------------------- */

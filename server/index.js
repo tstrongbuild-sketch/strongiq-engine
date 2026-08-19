@@ -44,6 +44,13 @@ function buildAnimationAsset(cfg) {
   return { asset, width, height };
 }
 
+// Relative asset paths (e.g. the bundled sample logo "/samples/..") must become
+// absolute in the exported email HTML, or they break in recipients' inboxes.
+function absolutizeAssets(body, base) {
+  const fix = (u) => (typeof u === 'string' && u.startsWith('/') ? base + u : u);
+  return { ...body, photoUrl: fix(body.photoUrl), logoUrl: fix(body.logoUrl) };
+}
+
 function decodeDataUrl(dataUrl) {
   const m = /^data:(image\/(png|jpe?g|gif|webp));base64,([A-Za-z0-9+/=]+)$/.exec(
     String(dataUrl || '').trim()
@@ -74,9 +81,10 @@ app.post('/api/assets', (req, res) => {
 // returns paste-ready email HTML plus hosted/share URLs.
 app.post('/api/signatures', (req, res) => {
   try {
-    const cfg = normalize(req.body || {});
-    const built = buildAnimationAsset(cfg);
     const base = baseUrl(req);
+    const body = absolutizeAssets(req.body || {}, base);
+    const cfg = normalize(body);
+    const built = buildAnimationAsset(cfg);
 
     const anim = built
       ? {
@@ -87,7 +95,7 @@ app.post('/api/signatures', (req, res) => {
         }
       : { type: 'none' };
 
-    const html = renderSignatureHtml(req.body || {}, anim);
+    const html = renderSignatureHtml(body, anim);
     const record = store.saveSignature({
       config: cfg,
       animation: built ? { filename: built.asset.filename, ...anim } : null,
@@ -108,13 +116,14 @@ app.post('/api/signatures', (req, res) => {
 // Preview HTML without persisting — used for iterative live rendering.
 app.post('/api/preview', (req, res) => {
   try {
-    const cfg = normalize(req.body || {});
-    const built = buildAnimationAsset(cfg);
     const base = baseUrl(req);
+    const body = absolutizeAssets(req.body || {}, base);
+    const cfg = normalize(body);
+    const built = buildAnimationAsset(cfg);
     const anim = built
       ? { type: cfg.animation, url: `${base}/a/${built.asset.filename}`, width: built.width, height: built.height }
       : { type: 'none' };
-    res.json({ html: renderSignatureHtml(req.body || {}, anim), animationUrl: built ? anim.url : null });
+    res.json({ html: renderSignatureHtml(body, anim), animationUrl: built ? anim.url : null });
   } catch (err) {
     res.status(400).json({ error: err.message || 'Failed to preview.' });
   }

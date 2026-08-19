@@ -37,9 +37,11 @@ the static fallback where animation is disabled.
 - **Photo upload** — a square headshot for the avatar slot, hosted on the
   server (emails can't use `data:` URLs reliably) and returned as a stable URL.
 - **Brand logo (wordmark)** — a separate wide-logo slot rendered at natural
-  proportions above the name, with an adjustable width. A draft StrongIQ
-  wordmark is bundled (`public/samples/`, one click via **Use StrongIQ logo**)
-  and regenerable with `node tools/make_logo.mjs <out-dir>`.
+  proportions above the name, with an adjustable width. The official StrongIQ
+  logo is bundled (`public/samples/strongiq-logo.png`, full-res source in
+  `assets/brand/`) and applied by default; one click on **Use StrongIQ logo**
+  re-applies it, or upload your own. Relative sample paths are absolutized to
+  the request host so the exported email HTML points at a loadable URL.
 - **Color controls** + one-click brand presets.
 - **Social badges** (LinkedIn, X, GitHub, Instagram, Facebook, YouTube) rendered
   as email-safe colored cells — no external icon CDN.
