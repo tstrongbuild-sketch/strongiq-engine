@@ -34,8 +34,12 @@ the static fallback where animation is disabled.
   - `gradientBar` — a shimmering gradient divider bar
   - `shimmer` — a shine sweeping across the company/logo text
   - `fadeTagline` — the tagline pulsing in and out
-- **Photo / logo upload** — hosted on the server (emails can't use `data:` URLs
-  reliably), returned as a stable URL.
+- **Photo upload** — a square headshot for the avatar slot, hosted on the
+  server (emails can't use `data:` URLs reliably) and returned as a stable URL.
+- **Brand logo (wordmark)** — a separate wide-logo slot rendered at natural
+  proportions above the name, with an adjustable width. A draft StrongIQ
+  wordmark is bundled (`public/samples/`, one click via **Use StrongIQ logo**)
+  and regenerable with `node tools/make_logo.mjs <out-dir>`.
 - **Color controls** + one-click brand presets.
 - **Social badges** (LinkedIn, X, GitHub, Instagram, Facebook, YouTube) rendered
   as email-safe colored cells — no external icon CDN.

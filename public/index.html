@@ -37,14 +37,28 @@
       </div>
 
       <div class="panel">
-        <h2 class="panel-title">Photo / logo</h2>
+        <h2 class="panel-title">Photo</h2>
         <div class="photo-row">
           <div class="photo-preview" id="photo-preview" aria-hidden="true">✚</div>
           <div class="photo-actions">
             <input id="f-photo" type="file" accept="image/*" hidden />
-            <button type="button" class="btn subtle" id="photo-btn">Upload image</button>
+            <button type="button" class="btn subtle" id="photo-btn">Upload headshot</button>
             <button type="button" class="btn link" id="photo-clear" hidden>Remove</button>
-            <p class="hint">Hosted on the server so it renders in real inboxes. Square images look best.</p>
+            <p class="hint">A square headshot for the avatar slot. Hosted on the server so it renders in real inboxes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Brand logo <span class="tag">wordmark</span></h2>
+        <div class="photo-row">
+          <div class="photo-preview logo-preview" id="logo-preview" aria-hidden="true">✚</div>
+          <div class="photo-actions">
+            <input id="f-logo" type="file" accept="image/*" hidden />
+            <button type="button" class="btn subtle" id="logo-btn">Upload logo</button>
+            <button type="button" class="btn subtle" id="logo-sample">Use StrongIQ logo</button>
+            <button type="button" class="btn link" id="logo-clear" hidden>Remove</button>
+            <p class="hint">A wide wordmark shown at natural proportions above your name. <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;">Width <input id="f-logowidth" type="range" min="100" max="280" value="180" style="vertical-align:middle;" /></label></p>
           </div>
         </div>
       </div>

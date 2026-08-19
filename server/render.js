@@ -33,6 +33,8 @@ const DEFAULTS = {
   address: '',
   tagline: 'Intelligence that compounds.',
   photoUrl: '',
+  logoUrl: '',
+  logoWidth: 180,
   template: 'modern',
   animation: 'gradientBar',
   colors: {
@@ -76,6 +78,8 @@ function normalize(input = {}) {
     address: input.address ?? DEFAULTS.address,
     tagline: input.tagline ?? DEFAULTS.tagline,
     photoUrl: input.photoUrl ?? DEFAULTS.photoUrl,
+    logoUrl: input.logoUrl ?? DEFAULTS.logoUrl,
+    logoWidth: Math.min(Math.max(parseInt(input.logoWidth, 10) || DEFAULTS.logoWidth, 60), 320),
     template: ['modern', 'classic', 'compact'].includes(input.template)
       ? input.template
       : DEFAULTS.template,
@@ -203,6 +207,19 @@ function photoCell(cfg, size) {
   );
 }
 
+// Wordmark / brand logo shown at natural aspect ratio (not cropped like the
+// square avatar). height:auto keeps the wordmark proportions intact.
+function logoBanner(cfg, marginTop) {
+  if (!cfg.logoUrl) return '';
+  const w = cfg.logoWidth;
+  return (
+    `<div style="margin:${marginTop || 0}px 0 8px;">` +
+    `<img src="${escapeAttrUrl(cfg.logoUrl)}" width="${w}" ` +
+    `alt="${escapeHtml(cfg.company)}" ` +
+    `style="display:block;border:0;outline:none;width:${w}px;height:auto;" /></div>`
+  );
+}
+
 function nameTitle(cfg) {
   const rows = [
     `<tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:19px;` +
@@ -225,6 +242,7 @@ function nameTitle(cfg) {
 function templateModern(cfg) {
   const anim = cfg._anim;
   const details =
+    logoBanner(cfg) +
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0">` +
     nameTitle(cfg) +
     `</table>` +
@@ -254,6 +272,7 @@ function templateClassic(cfg) {
     `style="background:${cfg.colors.bg};" bgcolor="${cfg.colors.bg}"><tr>` +
     photoCell(cfg, 96) +
     `<td valign="top" style="border-left:2px solid ${cfg.colors.primary};padding-left:18px;">` +
+    logoBanner(cfg) +
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0">` +
     nameTitle(cfg) +
     `</table>` +
@@ -279,6 +298,7 @@ function templateCompact(cfg) {
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" ` +
     `style="background:${cfg.colors.bg};" bgcolor="${cfg.colors.bg}"><tr>` +
     `<td valign="top">` +
+    logoBanner(cfg) +
     `<div style="padding-bottom:2px;">${nameLine}</div>` +
     `<div style="padding-bottom:4px;">${companyBlock(cfg, anim)}</div>` +
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0">` +

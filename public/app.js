@@ -23,6 +23,8 @@ const state = {
   address: '',
   tagline: 'Intelligence that compounds.',
   photoUrl: '',
+  logoUrl: '',
+  logoWidth: 180,
   template: 'modern',
   animation: 'gradientBar',
   colors: { primary: '#2563eb', accent: '#22d3ee', text: '#111827', muted: '#6b7280', bg: '#ffffff' },
@@ -92,6 +94,11 @@ function photoMarkup(size) {
   return `<img class="sig-photo" src="${esc(state.photoUrl)}" alt="" style="width:${size}px;height:${size}px;margin-right:18px" />`;
 }
 
+function logoMarkup() {
+  if (!state.logoUrl) return '';
+  return `<img src="${esc(state.logoUrl)}" alt="${esc(state.company)}" style="display:block;width:${state.logoWidth}px;height:auto;margin:0 0 8px" />`;
+}
+
 function renderPreview() {
   const { colors, template } = state;
   const nameBlock =
@@ -99,10 +106,12 @@ function renderPreview() {
     (state.title ? `<div class="sig-title" style="color:${colors.muted}">${esc(state.title)}</div>` : '') +
     `<div style="margin-top:4px">${companyMarkup()}</div>`;
 
+  const logo = logoMarkup();
   let html = '';
   if (template === 'compact') {
     html =
       `<div class="sig" style="background:${colors.bg};padding:4px">` +
+      logo +
       `<div><span class="sig-name" style="font-size:15px;color:${colors.text}">${esc(state.name)}</span>` +
       (state.title ? ` <span style="color:${colors.muted};font-size:13px">· ${esc(state.title)}</span>` : '') + `</div>` +
       `<div style="margin-top:2px">${companyMarkup()}</div>` +
@@ -113,13 +122,14 @@ function renderPreview() {
       `<div class="sig" style="background:${colors.bg};display:flex;padding:4px">` +
       photoMarkup(96) +
       `<div style="border-left:2px solid ${colors.primary};padding-left:18px">` +
-      nameBlock + contactMarkup() + taglineMarkup() + badges() + barMarkup(340) +
+      logo + nameBlock + contactMarkup() + taglineMarkup() + badges() + barMarkup(340) +
       `</div></div>`;
   } else {
     html =
       `<div class="sig" style="background:${colors.bg};display:flex;padding:4px">` +
       `<div style="width:4px;border-radius:4px;background:${colors.primary};margin-right:16px"></div>` +
       `<div style="flex:1">` +
+      logo +
       `<div style="display:flex">${photoMarkup(84)}<div>${nameBlock}${contactMarkup()}${taglineMarkup()}${badges()}</div></div>` +
       barMarkup(440) +
       `</div></div>`;
@@ -166,43 +176,74 @@ function toast(msg) {
   toast._t = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-/* --------------------------------- photo --------------------------------- */
+/* ----------------------------- photo & logo ------------------------------ */
 
-function setupPhoto() {
-  const input = $('#f-photo');
-  const preview = $('#photo-preview');
-  $('#photo-btn').addEventListener('click', () => input.click());
-  $('#photo-clear').addEventListener('click', () => {
-    state.photoUrl = '';
+async function uploadDataUrl(dataUrl) {
+  const r = await fetch('/api/assets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dataUrl }),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'upload failed');
+  return data.url;
+}
+
+function readFileDataUrl(file) {
+  return new Promise((res) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(file);
+  });
+}
+
+// Wires an upload control that stores its hosted URL into state[stateKey].
+function setupUpload({ inputId, btnId, clearId, previewId, stateKey, label }) {
+  const input = $(inputId);
+  const preview = $(previewId);
+  $(btnId).addEventListener('click', () => input.click());
+  $(clearId).addEventListener('click', () => {
+    state[stateKey] = '';
     preview.innerHTML = '✚';
-    $('#photo-clear').hidden = true;
+    $(clearId).hidden = true;
     renderPreview();
   });
   input.addEventListener('change', async () => {
     const file = input.files[0];
     if (!file) return;
-    const dataUrl = await new Promise((res) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result);
-      r.readAsDataURL(file);
-    });
+    const dataUrl = await readFileDataUrl(file);
     preview.innerHTML = `<img src="${dataUrl}" alt="" />`;
     try {
-      const r = await fetch('/api/assets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dataUrl }),
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || 'upload failed');
-      state.photoUrl = data.url;
-      $('#photo-clear').hidden = false;
+      state[stateKey] = await uploadDataUrl(dataUrl);
+      $(clearId).hidden = false;
       renderPreview();
-      toast('Photo hosted ✓');
+      toast(`${label} hosted ✓`);
     } catch (e) {
       toast('Upload failed: ' + e.message);
     }
   });
+}
+
+function setupPhoto() {
+  setupUpload({ inputId: '#f-photo', btnId: '#photo-btn', clearId: '#photo-clear',
+    previewId: '#photo-preview', stateKey: 'photoUrl', label: 'Photo' });
+
+  setupUpload({ inputId: '#f-logo', btnId: '#logo-btn', clearId: '#logo-clear',
+    previewId: '#logo-preview', stateKey: 'logoUrl', label: 'Logo' });
+
+  // One-click: use the bundled StrongIQ wordmark (served from /samples).
+  $('#logo-sample').addEventListener('click', () => {
+    state.logoUrl = '/samples/strongiq-logo.png';
+    $('#logo-preview').innerHTML = `<img src="${state.logoUrl}" alt="StrongIQ" />`;
+    $('#logo-clear').hidden = false;
+    renderPreview();
+    toast('StrongIQ logo applied ✓');
+  });
+
+  // Logo width slider.
+  const w = $('#f-logowidth');
+  w.value = state.logoWidth;
+  w.addEventListener('input', () => { state.logoWidth = parseInt(w.value, 10); renderPreview(); });
 }
 
 /* -------------------------------- generate ------------------------------- */
