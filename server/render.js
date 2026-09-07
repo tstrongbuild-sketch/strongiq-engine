@@ -34,9 +34,9 @@ const DEFAULTS = {
   tagline: 'Intelligence that compounds.',
   photoUrl: '',
   logoUrl: '',
-  logoWidth: 180,
-  template: 'modern',
-  animation: 'gradientBar',
+  logoWidth: 200,
+  template: 'house',
+  animation: 'logoShimmer',
   colors: {
     primary: '#2563eb',
     accent: '#22d3ee',
@@ -80,10 +80,10 @@ function normalize(input = {}) {
     photoUrl: input.photoUrl ?? DEFAULTS.photoUrl,
     logoUrl: input.logoUrl ?? DEFAULTS.logoUrl,
     logoWidth: Math.min(Math.max(parseInt(input.logoWidth, 10) || DEFAULTS.logoWidth, 60), 320),
-    template: ['modern', 'classic', 'compact'].includes(input.template)
+    template: ['house', 'modern', 'classic', 'compact'].includes(input.template)
       ? input.template
       : DEFAULTS.template,
-    animation: ['gradientBar', 'shimmer', 'fadeTagline', 'none'].includes(input.animation)
+    animation: ['logoShimmer', 'gradientBar', 'shimmer', 'fadeTagline', 'none'].includes(input.animation)
       ? input.animation
       : DEFAULTS.animation,
     colors: {
@@ -208,16 +208,27 @@ function photoCell(cfg, size) {
 }
 
 // Wordmark / brand logo shown at natural aspect ratio (not cropped like the
-// square avatar). height:auto keeps the wordmark proportions intact.
-function logoBanner(cfg, marginTop) {
-  if (!cfg.logoUrl) return '';
-  const w = cfg.logoWidth;
+// square avatar). height:auto keeps the wordmark proportions intact. When the
+// logoShimmer animation is active, the animated GIF replaces the static logo.
+function logoImg(cfg) {
+  const anim = cfg._anim || {};
+  const animated = anim.target === 'logo' && anim.url;
+  const src = animated ? anim.url : cfg.logoUrl;
+  if (!src) return '';
+  const w = animated ? anim.width : cfg.logoWidth;
+  const hAttr = animated ? ` height="${anim.height}"` : '';
+  const hStyle = animated ? `height:${anim.height}px;` : 'height:auto;';
   return (
-    `<div style="margin:${marginTop || 0}px 0 8px;">` +
-    `<img src="${escapeAttrUrl(cfg.logoUrl)}" width="${w}" ` +
+    `<img src="${escapeAttrUrl(src)}" width="${w}"${hAttr} ` +
     `alt="${escapeHtml(cfg.company)}" ` +
-    `style="display:block;border:0;outline:none;width:${w}px;height:auto;" /></div>`
+    `style="display:block;border:0;outline:none;width:${w}px;${hStyle}" />`
   );
+}
+
+function logoBanner(cfg, marginTop) {
+  const img = logoImg(cfg);
+  if (!img) return '';
+  return `<div style="margin:${marginTop || 0}px 0 8px;">${img}</div>`;
 }
 
 function nameTitle(cfg) {
@@ -310,7 +321,57 @@ function templateCompact(cfg) {
   );
 }
 
+// "House" template — matches the StrongIQ signature: logo on the left, a rust
+// vertical rule, then name / ROLE (accent caps) / phone · email / website.
+function houseContact(cfg) {
+  const { colors } = cfg;
+  const link = (href, text, color, bold) =>
+    `<a href="${href}" style="color:${color};text-decoration:none;${bold ? 'font-weight:bold;' : ''}">${escapeHtml(text)}</a>`;
+  const bits = [];
+  if (cfg.phone) {
+    const tel = cfg.phone.replace(/[^\d+]/g, '');
+    bits.push(link(`tel:${escapeHtml(tel)}`, cfg.phone, colors.muted));
+  }
+  if (cfg.email) bits.push(link(`mailto:${escapeHtml(cfg.email)}`, cfg.email, colors.muted));
+  const line1 = bits.length
+    ? `<tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;` +
+      `line-height:20px;color:${colors.muted};padding-top:10px;">${bits.join(' &nbsp;·&nbsp; ')}</td></tr>`
+    : '';
+  const web = cfg.website
+    ? `<tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;padding-top:2px;">` +
+      link(escapeAttrUrl(cfg.website), cfg.website.replace(/^https?:\/\//, ''), colors.accent, true) +
+      `</td></tr>`
+    : '';
+  return line1 + web;
+}
+
+function templateHouse(cfg) {
+  const { colors } = cfg;
+  const logo = logoImg(cfg);
+  const name =
+    `<tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;` +
+    `line-height:22px;color:${colors.text};">${escapeHtml(cfg.name)}</td></tr>`;
+  const role = cfg.title
+    ? `<tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;` +
+      `letter-spacing:0.14em;text-transform:uppercase;color:${colors.accent};padding-top:3px;">` +
+      `${escapeHtml(cfg.title)}</td></tr>`
+    : '';
+  const details =
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0">${name}${role}</table>` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0">${houseContact(cfg)}</table>` +
+    socialRow(cfg);
+
+  return (
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" ` +
+    `style="background:${colors.bg};" bgcolor="${colors.bg}"><tr>` +
+    (logo ? `<td valign="middle" style="padding-right:22px;">${logo}</td>` : '') +
+    `<td valign="middle" style="border-left:2px solid ${colors.accent};padding-left:22px;">` +
+    `${details}</td></tr></table>`
+  );
+}
+
 const TEMPLATES = {
+  house: templateHouse,
   modern: templateModern,
   classic: templateClassic,
   compact: templateCompact,

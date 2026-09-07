@@ -28,11 +28,14 @@ the static fallback where animation is disabled.
 ## Features
 
 - **Live preview** inside a mock email, with light/dark inbox toggle.
-- **Three layouts** — Modern (accent bar + photo), Classic (rule divider),
-  Compact (one-line header).
-- **Three animations**, each rendered server-side to a hosted GIF:
+- **Four layouts** — **House** (the StrongIQ signature: logo · rust rule ·
+  Name / ROLE / phone · email / website; the default), Modern (accent bar +
+  photo), Classic (rule divider), Compact (one-line header).
+- **Animations**, each rendered server-side to a hosted GIF:
+  - `logoShimmer` — one slow shine sweeps across the actual logo, then rests
+    (the premium default; clipped to the logo's own pixels)
   - `gradientBar` — a shimmering gradient divider bar
-  - `shimmer` — a shine sweeping across the company/logo text
+  - `shimmer` — a shine sweeping across the company text
   - `fadeTagline` — the tagline pulsing in and out
 - **Photo upload** — a square headshot for the avatar slot, hosted on the
   server (emails can't use `data:` URLs reliably) and returned as a stable URL.

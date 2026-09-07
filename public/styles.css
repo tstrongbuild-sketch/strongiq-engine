@@ -192,6 +192,24 @@ input[type=color] {
 .anim-fade { animation: fadepulse 3s ease-in-out infinite; }
 @keyframes fadepulse { 0%,100% { opacity: .15; } 40%,60% { opacity: 1; } }
 
+/* subtle logo shimmer — one slow sweep, then rest. The shine is masked to the
+   logo's own shape so only the mark lights up, matching the exported GIF. */
+.logo-shim { position: relative; display: inline-block; }
+.logo-shim .logo-shine {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 42%, rgba(255,255,255,.85) 50%, transparent 58%);
+  background-size: 250% 100%; background-repeat: no-repeat;
+  -webkit-mask: var(--logo) no-repeat center / contain;
+  mask: var(--logo) no-repeat center / contain;
+  animation: logoshine 3.6s ease-in-out infinite;
+}
+@keyframes logoshine {
+  0% { background-position: 160% 0; }
+  28% { background-position: -60% 0; }
+  100% { background-position: -60% 0; }
+}
+@media (prefers-reduced-motion: reduce) { .logo-shine { animation: none; opacity: 0; } }
+
 /* buttons */
 .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .btn {

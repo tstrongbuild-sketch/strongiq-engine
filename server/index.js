@@ -4,7 +4,7 @@ const path = require('path');
 const express = require('express');
 
 const store = require('./store');
-const { generateAnimation } = require('./gif');
+const { generateAnimation, logoShimmer } = require('./gif');
 const { renderSignatureHtml, renderSharePage, normalize } = require('./render');
 
 const app = express();
@@ -30,9 +30,41 @@ function animationText(cfg) {
   return '';
 }
 
+// Map a logo URL (already absolutized) back to a local file we can rasterize:
+//   .../samples/<f>  -> public/samples/<f>   (bundled assets)
+//   .../a/<f>        -> DATA_DIR/assets/<f>   (uploaded assets)
+function resolveLogoPath(logoUrl) {
+  if (!logoUrl) return null;
+  let pathname;
+  try {
+    pathname = new URL(logoUrl).pathname;
+  } catch {
+    pathname = String(logoUrl);
+  }
+  let m = pathname.match(/\/samples\/([A-Za-z0-9._-]+)$/);
+  if (m) return path.join(__dirname, '..', 'public', 'samples', m[1]);
+  m = pathname.match(/\/a\/([A-Za-z0-9._-]+)$/);
+  if (m) return path.join(store.DATA_DIR, 'assets', m[1]);
+  return null;
+}
+
 // Build (and host) the animated GIF for a signature config, if any.
-function buildAnimationAsset(cfg) {
+async function buildAnimationAsset(cfg) {
   if (!cfg.animation || cfg.animation === 'none') return null;
+
+  // Logo shimmer animates the actual logo image and replaces the static logo.
+  if (cfg.animation === 'logoShimmer') {
+    const logoPath = resolveLogoPath(cfg.logoUrl);
+    if (!logoPath || !require('fs').existsSync(logoPath)) return null;
+    const { buffer, width, height } = await logoShimmer({
+      logoPath,
+      bg: cfg.colors.bg,
+      width: cfg.logoWidth || 200,
+    });
+    const asset = store.saveAsset(buffer, 'gif');
+    return { asset, width, height, target: 'logo' };
+  }
+
   const { buffer, width, height } = generateAnimation(cfg.animation, {
     text: animationText(cfg),
     primary: cfg.colors.primary,
@@ -40,8 +72,7 @@ function buildAnimationAsset(cfg) {
     bg: cfg.colors.bg,
     width: 440,
   });
-  const asset = store.saveAsset(buffer, 'gif');
-  return { asset, width, height };
+  return { asset: store.saveAsset(buffer, 'gif'), width, height };
 }
 
 // Relative asset paths (e.g. the bundled sample logo "/samples/..") must become
@@ -79,12 +110,12 @@ app.post('/api/assets', (req, res) => {
 
 // Create a signature: generates + hosts the animated GIF, stores the record,
 // returns paste-ready email HTML plus hosted/share URLs.
-app.post('/api/signatures', (req, res) => {
+app.post('/api/signatures', async (req, res) => {
   try {
     const base = baseUrl(req);
     const body = absolutizeAssets(req.body || {}, base);
     const cfg = normalize(body);
-    const built = buildAnimationAsset(cfg);
+    const built = await buildAnimationAsset(cfg);
 
     const anim = built
       ? {
@@ -92,6 +123,7 @@ app.post('/api/signatures', (req, res) => {
           url: `${base}/a/${built.asset.filename}`,
           width: built.width,
           height: built.height,
+          target: built.target || null,
         }
       : { type: 'none' };
 
@@ -114,14 +146,14 @@ app.post('/api/signatures', (req, res) => {
 });
 
 // Preview HTML without persisting — used for iterative live rendering.
-app.post('/api/preview', (req, res) => {
+app.post('/api/preview', async (req, res) => {
   try {
     const base = baseUrl(req);
     const body = absolutizeAssets(req.body || {}, base);
     const cfg = normalize(body);
-    const built = buildAnimationAsset(cfg);
+    const built = await buildAnimationAsset(cfg);
     const anim = built
-      ? { type: cfg.animation, url: `${base}/a/${built.asset.filename}`, width: built.width, height: built.height }
+      ? { type: cfg.animation, url: `${base}/a/${built.asset.filename}`, width: built.width, height: built.height, target: built.target || null }
       : { type: 'none' };
     res.json({ html: renderSignatureHtml(body, anim), animationUrl: built ? anim.url : null });
   } catch (err) {

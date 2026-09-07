@@ -10,7 +10,7 @@
  * uses CSS for a crisp look; the exported HTML points at one of these GIFs.
  */
 
-const { createCanvas } = require('@napi-rs/canvas');
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
 const gifenc = require('gifenc');
 
 const { GIFEncoder, quantize, applyPalette } = gifenc;
@@ -43,14 +43,19 @@ function mix(a, b, t) {
   return `rgb(${r},${g},${bl})`;
 }
 
+// `delay` is a single ms value applied to every frame, or an array of
+// per-frame delays (used to hold a "rest" frame long between shimmer passes).
 function encodeFrames(width, height, frames, delay) {
   const enc = GIFEncoder();
-  for (const data of frames) {
+  frames.forEach((data, i) => {
     // gifenc wants a flat RGBA Uint8ClampedArray/Uint8Array.
     const palette = quantize(data, 256);
     const index = applyPalette(data, palette);
-    enc.writeFrame(index, width, height, { palette, delay });
-  }
+    enc.writeFrame(index, width, height, {
+      palette,
+      delay: Array.isArray(delay) ? delay[i] : delay,
+    });
+  });
   enc.finish();
   return Buffer.from(enc.bytes());
 }
@@ -194,6 +199,59 @@ function fadeTagline(opts) {
   return { buffer: encodeFrames(width, height, frames, 70), width, height };
 }
 
+/**
+ * Subtle logo shimmer: one slow highlight sweeps across the actual logo image,
+ * then the logo rests for a couple of seconds before repeating. A premium,
+ * "no gimmick" touch — the shine is clipped to the logo's own pixels via
+ * source-atop, so only the mark lights up, not the background.
+ *
+ * Async because it loads the logo bitmap. Returns the same shape as the others.
+ */
+async function logoShimmer(opts) {
+  const img = await loadImage(opts.logoPath);
+  const targetW = Math.min(Math.max(opts.width || 200, 60), 480);
+  const scale = targetW / img.width;
+  const width = Math.round(img.width * scale);
+  const height = Math.round(img.height * scale);
+  const bg = clampHex(opts.bg, '#ffffff');
+
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  const frames = [];
+  const delays = [];
+  const sweepFrames = 16;
+  const bandW = Math.max(40, width * 0.22);
+
+  for (let f = 0; f < sweepFrames; f++) {
+    const t = f / (sweepFrames - 1);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
+
+    const cx = t * (width + bandW * 2) - bandW;
+    const shine = ctx.createLinearGradient(cx - bandW, 0, cx + bandW, 0);
+    shine.addColorStop(0, 'rgba(255,255,255,0)');
+    shine.addColorStop(0.5, 'rgba(255,255,255,0.55)');
+    shine.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = shine;
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalCompositeOperation = 'source-over';
+
+    frames.push(ctx.getImageData(0, 0, width, height).data);
+    delays.push(55);
+  }
+
+  // Held "rest" frame: the plain logo, paused ~2.6s before the next sweep.
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
+  frames.push(ctx.getImageData(0, 0, width, height).data);
+  delays.push(2600);
+
+  return { buffer: encodeFrames(width, height, frames, delays), width, height };
+}
+
 const GENERATORS = {
   gradientBar,
   shimmer: shimmerText,
@@ -210,4 +268,4 @@ function generateAnimation(type, opts = {}) {
   return gen(opts);
 }
 
-module.exports = { generateAnimation, GENERATORS };
+module.exports = { generateAnimation, logoShimmer, GENERATORS };

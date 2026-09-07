@@ -14,21 +14,21 @@ const NETWORKS = {
 };
 
 const state = {
-  name: 'Alex Morgan',
-  title: 'Founder & CEO',
+  name: 'Tim Strong',
+  title: 'Founder',
   company: 'StrongIQ',
-  email: 'alex@strongiq.com',
-  phone: '+1 (555) 010-2048',
-  website: 'strongiq.com',
+  email: 'tim@strongiq.au',
+  phone: '0433 115 152',
+  website: 'strongiq.com.au',
   address: '',
-  tagline: 'Intelligence that compounds.',
+  tagline: '',
   photoUrl: '',
   logoUrl: '/samples/strongiq-logo.png',
-  logoWidth: 190,
-  template: 'modern',
-  animation: 'gradientBar',
-  colors: { primary: '#121721', accent: '#a9784b', text: '#121721', muted: '#6e7076', bg: '#f5f2ec' },
-  socials: { linkedin: 'linkedin.com/in/alexmorgan', twitter: '', github: 'github.com/alexmorgan' },
+  logoWidth: 200,
+  template: 'house',
+  animation: 'logoShimmer',
+  colors: { primary: '#121721', accent: '#a9784b', text: '#121721', muted: '#6e7076', bg: '#ffffff' },
+  socials: {},
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -94,9 +94,42 @@ function photoMarkup(size) {
   return `<img class="sig-photo" src="${esc(state.photoUrl)}" alt="" style="width:${size}px;height:${size}px;margin-right:18px" />`;
 }
 
-function logoMarkup() {
+// The logo itself — with a CSS shine masked to the logo shape when the
+// logoShimmer animation is active (mirrors the exported GIF).
+function coreLogo() {
   if (!state.logoUrl) return '';
-  return `<img src="${esc(state.logoUrl)}" alt="${esc(state.company)}" style="display:block;width:${state.logoWidth}px;height:auto;margin:0 0 8px" />`;
+  const w = state.logoWidth;
+  const img = `<img src="${esc(state.logoUrl)}" alt="${esc(state.company)}" style="display:block;width:${w}px;height:auto" />`;
+  if (state.animation === 'logoShimmer') {
+    return `<span class="logo-shim" style="width:${w}px;--logo:url('${esc(state.logoUrl)}')">${img}<span class="logo-shine"></span></span>`;
+  }
+  return img;
+}
+
+function logoMarkup() {
+  const l = coreLogo();
+  return l ? `<div style="margin:0 0 8px">${l}</div>` : '';
+}
+
+function houseTemplate() {
+  const { colors } = state;
+  const role = state.title
+    ? `<div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${colors.accent};margin-top:3px">${esc(state.title)}</div>`
+    : '';
+  const bits = [];
+  if (state.phone) bits.push(`<span style="color:${colors.muted}">${esc(state.phone)}</span>`);
+  if (state.email) bits.push(`<a href="mailto:${esc(state.email)}" style="color:${colors.muted};text-decoration:none">${esc(state.email)}</a>`);
+  const contact = bits.length ? `<div style="margin-top:10px;font-size:13px">${bits.join(' &nbsp;·&nbsp; ')}</div>` : '';
+  const web = state.website
+    ? `<div style="font-size:13px;margin-top:2px"><a href="${esc(withProto(state.website))}" style="color:${colors.accent};font-weight:700;text-decoration:none">${esc(state.website.replace(/^https?:\/\//, ''))}</a></div>`
+    : '';
+  return (
+    `<div class="sig" style="background:${colors.bg};display:inline-flex;align-items:center;padding:4px">` +
+    `<div style="padding-right:22px">${coreLogo()}</div>` +
+    `<div style="border-left:2px solid ${colors.accent};padding-left:22px">` +
+    `<div class="sig-name" style="font-size:18px;color:${colors.text}">${esc(state.name)}</div>${role}${contact}${web}` +
+    `</div></div>`
+  );
 }
 
 function renderPreview() {
@@ -108,7 +141,9 @@ function renderPreview() {
 
   const logo = logoMarkup();
   let html = '';
-  if (template === 'compact') {
+  if (template === 'house') {
+    html = houseTemplate();
+  } else if (template === 'compact') {
     html =
       `<div class="sig" style="background:${colors.bg};padding:4px">` +
       logo +

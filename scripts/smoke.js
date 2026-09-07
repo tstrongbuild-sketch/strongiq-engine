@@ -75,6 +75,29 @@ async function main() {
       assert(share.ok && (await share.text()).includes('<!doctype html>'), `${animation}: share page renders`);
     }
 
+    // House template + logoShimmer: animates the bundled logo and embeds it
+    const house = await json('/api/signatures', {
+      name: 'Tim Strong',
+      title: 'Founder',
+      company: 'StrongIQ',
+      email: 'tim@strongiq.au',
+      phone: '0433 115 152',
+      website: 'strongiq.com.au',
+      template: 'house',
+      animation: 'logoShimmer',
+      logoUrl: '/samples/strongiq-logo.png',
+    });
+    const hd = await house.json();
+    assert(house.ok, 'house/logoShimmer generated');
+    assert(hd.html.includes('Tim Strong') && hd.html.includes('FOUNDER'.replace('FOUNDER', 'Founder')), 'house html has name');
+    assert(/\/a\/.+\.gif$/.test(hd.animationUrl), 'logoShimmer: hosted animated logo GIF');
+    assert(hd.html.includes(hd.animationUrl), 'logoShimmer: html embeds animated logo');
+    const lg = await fetch(hd.animationUrl);
+    const lbuf = Buffer.from(await lg.arrayBuffer());
+    assert(lbuf.slice(0, 6).toString('ascii') === 'GIF89a', 'logoShimmer: valid GIF');
+    // exported logo/website URLs must be absolute
+    assert(/src="https?:\/\/[^"]+\/a\//.test(hd.html), 'logoShimmer: absolute logo src in HTML');
+
     // 404s
     const nf = await fetch(base + '/a/deadbeef.gif');
     assert(nf.status === 404, 'missing asset 404s');
