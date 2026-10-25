@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StrongIQ — Animated Email Signature Studio</title>
+  <meta name="description" content="Design animated email signatures with a live preview and paste-ready, email-safe HTML backed by server-hosted GIF animation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%8D%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-dot"></span>
+      <span class="brand-name">StrongIQ</span>
+      <span class="brand-sub">Animated Signature Studio</span>
+    </div>
+    <a class="ghost-link" href="https://www.customesignature.com" target="_blank" rel="noreferrer">inspired by animated signatures ↗</a>
+  </header>
+
+  <main class="layout">
+    <!-- ------------------------------ EDITOR ------------------------------ -->
+    <section class="editor" aria-label="Signature editor">
+      <div class="panel">
+        <h2 class="panel-title">Your details</h2>
+        <div class="grid2">
+          <label class="field"><span>Full name</span><input id="f-name" type="text" placeholder="Alex Morgan" /></label>
+          <label class="field"><span>Job title</span><input id="f-title" type="text" placeholder="Founder & CEO" /></label>
+          <label class="field"><span>Company</span><input id="f-company" type="text" placeholder="StrongIQ" /></label>
+          <label class="field"><span>Email</span><input id="f-email" type="email" placeholder="alex@strongiq.com" /></label>
+          <label class="field"><span>Phone</span><input id="f-phone" type="text" placeholder="+1 (555) 010-2048" /></label>
+          <label class="field"><span>Website</span><input id="f-website" type="text" placeholder="strongiq.com" /></label>
+          <label class="field span2"><span>Address <em>(optional)</em></span><input id="f-address" type="text" placeholder="123 Market St, San Francisco" /></label>
+          <label class="field span2"><span>Tagline</span><input id="f-tagline" type="text" placeholder="Intelligence that compounds." /></label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Photo</h2>
+        <div class="photo-row">
+          <div class="photo-preview" id="photo-preview" aria-hidden="true">✚</div>
+          <div class="photo-actions">
+            <input id="f-photo" type="file" accept="image/*" hidden />
+            <button type="button" class="btn subtle" id="photo-btn">Upload headshot</button>
+            <button type="button" class="btn link" id="photo-clear" hidden>Remove</button>
+            <p class="hint">A square headshot for the avatar slot. Hosted on the server so it renders in real inboxes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Brand logo <span class="tag">wordmark</span></h2>
+        <div class="photo-row">
+          <div class="photo-preview logo-preview" id="logo-preview" aria-hidden="true">✚</div>
+          <div class="photo-actions">
+            <input id="f-logo" type="file" accept="image/*" hidden />
+            <button type="button" class="btn subtle" id="logo-btn">Upload logo</button>
+            <button type="button" class="btn subtle" id="logo-sample">Use StrongIQ logo</button>
+            <button type="button" class="btn link" id="logo-clear" hidden>Remove</button>
+            <p class="hint">A wide wordmark shown at natural proportions above your name. <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;">Width <input id="f-logowidth" type="range" min="100" max="280" value="190" style="vertical-align:middle;" /></label></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Social links</h2>
+        <div class="grid2">
+          <label class="field"><span>LinkedIn</span><input id="s-linkedin" type="text" placeholder="linkedin.com/in/…" /></label>
+          <label class="field"><span>X / Twitter</span><input id="s-twitter" type="text" placeholder="x.com/…" /></label>
+          <label class="field"><span>GitHub</span><input id="s-github" type="text" placeholder="github.com/…" /></label>
+          <label class="field"><span>Instagram</span><input id="s-instagram" type="text" placeholder="instagram.com/…" /></label>
+          <label class="field"><span>Facebook</span><input id="s-facebook" type="text" placeholder="facebook.com/…" /></label>
+          <label class="field"><span>YouTube</span><input id="s-youtube" type="text" placeholder="youtube.com/@…" /></label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Layout</h2>
+        <div class="choice-row" id="template-row" role="radiogroup" aria-label="Template">
+          <button class="choice" data-template="house" role="radio" aria-checked="true">
+            <span class="choice-name">House</span><span class="choice-desc">Logo · rule · role — the StrongIQ layout</span>
+          </button>
+          <button class="choice" data-template="modern" role="radio" aria-checked="false">
+            <span class="choice-name">Modern</span><span class="choice-desc">Accent bar · photo left</span>
+          </button>
+          <button class="choice" data-template="classic" role="radio" aria-checked="false">
+            <span class="choice-name">Classic</span><span class="choice-desc">Rule divider</span>
+          </button>
+          <button class="choice" data-template="compact" role="radio" aria-checked="false">
+            <span class="choice-name">Compact</span><span class="choice-desc">One-liner header</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Animation <span class="tag">hosted GIF</span></h2>
+        <div class="choice-row" id="animation-row" role="radiogroup" aria-label="Animation">
+          <button class="choice" data-animation="logoShimmer" role="radio" aria-checked="true">
+            <span class="choice-name">Logo shimmer</span><span class="choice-desc">One slow shine across the logo</span>
+          </button>
+          <button class="choice" data-animation="gradientBar" role="radio" aria-checked="false">
+            <span class="choice-name">Gradient sweep</span><span class="choice-desc">Shimmering divider bar</span>
+          </button>
+          <button class="choice" data-animation="fadeTagline" role="radio" aria-checked="false">
+            <span class="choice-name">Fade tagline</span><span class="choice-desc">Tagline pulses in</span>
+          </button>
+          <button class="choice" data-animation="none" role="radio" aria-checked="false">
+            <span class="choice-name">None</span><span class="choice-desc">Static signature</span>
+          </button>
+        </div>
+        <p class="hint">The preview animates with CSS. The exported email embeds a server-hosted GIF — the one thing that actually animates in Gmail &amp; Outlook.</p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Colors</h2>
+        <div class="color-row">
+          <label class="color"><input id="c-primary" type="color" value="#121721" /><span>Primary</span></label>
+          <label class="color"><input id="c-accent" type="color" value="#a9784b" /><span>Accent</span></label>
+          <label class="color"><input id="c-text" type="color" value="#121721" /><span>Text</span></label>
+          <label class="color"><input id="c-muted" type="color" value="#6e7076" /><span>Muted</span></label>
+          <label class="color"><input id="c-bg" type="color" value="#f5f2ec" /><span>Background</span></label>
+        </div>
+        <div class="preset-row" id="preset-row">
+          <button class="preset" data-p="121721,a9784b,121721,6e7076,f5f2ec" style="--a:#121721;--b:#a9784b">StrongIQ</button>
+          <button class="preset" data-p="2563eb,22d3ee,111827,6b7280,ffffff" style="--a:#2563eb;--b:#22d3ee">Ocean</button>
+          <button class="preset" data-p="7c3aed,ec4899,111827,6b7280,ffffff" style="--a:#7c3aed;--b:#ec4899">Grape</button>
+          <button class="preset" data-p="059669,84cc16,0f172a,64748b,ffffff" style="--a:#059669;--b:#84cc16">Forest</button>
+          <button class="preset" data-p="ea580c,f59e0b,1c1917,78716c,fffbeb" style="--a:#ea580c;--b:#f59e0b">Sunset</button>
+          <button class="preset" data-p="e5e7eb,38bdf8,f8fafc,94a3b8,0f172a" style="--a:#38bdf8;--b:#0f172a">Midnight</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------ PREVIEW ----------------------------- -->
+    <section class="preview-col" aria-label="Preview and export">
+      <div class="preview-sticky">
+        <div class="preview-head">
+          <h2 class="panel-title">Live preview</h2>
+          <div class="seg" id="theme-seg">
+            <button class="seg-btn active" data-bg="light">Light</button>
+            <button class="seg-btn" data-bg="dark">Dark</button>
+          </div>
+        </div>
+        <div class="mail-frame" id="mail-frame">
+          <div class="mail-meta">
+            <div class="mail-line"><b>From</b> <span id="mm-name">Alex Morgan</span></div>
+            <div class="mail-line"><b>Subject</b> Great connecting today</div>
+          </div>
+          <div class="mail-body">
+            <p class="mail-text">Thanks again — talk soon.</p>
+            <div id="signature-preview" class="signature-preview"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="generate-btn">Generate hosted signature</button>
+          <button class="btn subtle" id="copy-rich-btn">Copy for Gmail</button>
+        </div>
+
+        <div class="export" id="export" hidden>
+          <h3 class="export-title">Paste-ready signature <span class="ok" id="export-ok"></span></h3>
+          <div class="export-links" id="export-links"></div>
+          <label class="field"><span>Email HTML</span>
+            <textarea id="html-out" rows="7" spellcheck="false" readonly></textarea>
+          </label>
+          <div class="actions">
+            <button class="btn subtle" id="copy-html-btn">Copy HTML</button>
+            <a class="btn link" id="open-share" target="_blank" rel="noreferrer">Open share page ↗</a>
+          </div>
+          <details class="how">
+            <summary>How to install it</summary>
+            <ol>
+              <li><b>Gmail:</b> Settings → See all settings → General → Signature → paste with <em>Copy for Gmail</em>.</li>
+              <li><b>Outlook:</b> File → Options → Mail → Signatures → paste the rich signature.</li>
+              <li><b>Apple Mail:</b> Settings → Signatures → paste; keep "Always match my default font" off.</li>
+            </ol>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

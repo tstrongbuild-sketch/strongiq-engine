@@ -1,0 +1,28 @@
+{
+  "name": "strongiq-engine",
+  "version": "1.0.0",
+  "description": "Animated email signature generator with server-hosted animation assets and email-client-safe HTML export.",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "smoke": "node scripts/smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.0",
+    "express": "^4.22.2",
+    "gifenc": "^1.0.3"
+  },
+  "keywords": [
+    "email",
+    "signature",
+    "animated",
+    "gif",
+    "generator"
+  ],
+  "license": "MIT"
+}
